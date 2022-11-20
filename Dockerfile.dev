@@ -1,0 +1,26 @@
+FROM debian:bullseye
+
+MAINTAINER Viktor Rudko, Mattes Reitz
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update --fix-missing \
+    && apt install -y  apache2  curl locales vim libpq-dev libpcre2-8-0
+
+ADD http://archive.ubuntu.com/ubuntu/pool/universe/h/hiredis/libhiredis0.13_0.13.3-2.2_amd64.deb /modules/libhiredis.deb
+
+RUN  dpkg -i /modules/libhiredis.deb &&   apt-get install -f
+
+
+ADD /apache/djangohab.dev.conf /etc/apache2/sites-available/000-default.conf
+
+
+RUN a2enmod ssl \
+    && a2enmod rewrite \
+    && a2enmod headers \
+    && a2enmod proxy\
+    && a2enmod proxy_http \
+    && a2enmod proxy_ajp \
+    && a2enmod proxy_balancer \
+    && a2enmod proxy_connect \
+    && a2enmod proxy_html
+
+CMD ["/usr/sbin/apachectl" ,"-D", "FOREGROUND"]
